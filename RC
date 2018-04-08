@@ -1,7 +1,4 @@
 #!/bin/bash
-export JAVA_HOME=/opt/java/jdk1.7.0_80
-export PATH=$JAVA_HOME/bin:$PATH
-
 export RC_HOME=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 export RC_RELEASE=$RC_HOME/release/target-as7
 export RC_CONFIGURATION=$RC_HOME/configurations
@@ -11,14 +8,24 @@ export MAVEN_OPTS="-Xms1024m -Xmx2048m -XX:MaxPermSize=1024m"
 
 rc_build()
 {
+    export JAVA_HOME=/opt/java/jdk1.8.0_162
+    export PATH=$JAVA_HOME/bin:$PATH
+
     export MAJOR_VERSION_NUMBER=8.2
     export BUILD_NUMBER=0
     mkdir -p $RC_DEPENDENCIES
-    ant release -f $RC_HOME/release/build.xml -Drestcomm.release.version=$MAJOR_VERSION_NUMBER.$BUILD_NUMBER -Drestcomm.branch.name=restcomm-release-$MAJOR_VERSION_NUMBER.$BUILD_NUMBER -Dcheckout.restcomm.dir=$RC_HOME -Dworkspace.restcomm.dir=$RC_HOME/restcomm -Dcheckout.dir=$RC_DEPENDENCIES
+    TARGET="release"
+    if [ $1 != "" ]; then
+        TARGET=$1
+    fi
+    ant $TARGET -f $RC_HOME/release/build.xml -Drestcomm.release.version=$MAJOR_VERSION_NUMBER.$BUILD_NUMBER -Drestcomm.branch.name=restcomm-release-$MAJOR_VERSION_NUMBER.$BUILD_NUMBER -Dcheckout.restcomm.dir=$RC_HOME -Dworkspace.restcomm.dir=$RC_HOME/restcomm -Dcheckout.dir=$RC_DEPENDENCIES
 }
 
 rc_start()
 {
+    export JAVA_HOME=/opt/java/jdk1.7.0_80
+    export PATH=$JAVA_HOME/bin:$PATH
+
     cp -rf $RC_CONFIGURATION/* $RC_RELEASE/
     $RC_RELEASE/bin/restcomm/start-restcomm.sh
 }
@@ -28,15 +35,15 @@ rc_stop()
     $RC_RELEASE/bin/restcomm/stop-restcomm.sh
 }
 
-case "$@" in
+case "$1" in
     "build")
-        build_restcomm
+        rc_build $2
         ;;
     "start")
-        start_restcomm
+        rc_start
         ;;
     "stop")
-        stop_restcomm
+        rc_stop
         ;;
     *)
         ;;
